@@ -1,0 +1,115 @@
+#Bibliotecas
+library(worldfootballR)
+library(tidyverse)
+library(dplyr)
+
+#Liga
+
+liga <- fb_league_urls("ESP", "M", 2023, "1st")
+
+#Equipos
+
+equipos <- fb_teams_urls(liga)
+
+#Jugadores
+
+jugadores <- c()
+
+for (i in 1:length(equipos)) {
+  test <- fb_player_urls(equipos[i])
+  jugadores <- c(jugadores, test)
+  print(i)
+}
+
+#Goal Logs
+
+goals <- data.frame()
+
+for (i in 1:length(equipos)) {
+  test <- fb_team_goal_logs(equipos[i], for_or_against = "for")
+  test$team <- equipos[i]
+  goals <- bind_rows(goals, test)
+  print(i)
+}
+
+#Stats Equipos
+
+tipos_stats <- c("shooting", "keeper", "passing", "passing_types", "gca", "defense", "misc")
+
+for (j in 1:length(tipos_stats)) {
+  assign(paste("stats_", tipos_stats[j]), data.frame())
+  for (i in 1:length(equipos)) {
+    test <- fb_team_match_log_stats(equipos[i], tipos_stats[j])
+    assign(paste("stats_", tipos_stats[j]), bind_rows(get(paste("stats_", tipos_stats[j])), test))
+    print(i)
+  }
+}
+
+#Stats Jugadores
+
+tipos_stats <- c("summary","keepers", "passing", "passing_types", "gca", "defense", "possession", "misc")
+
+for (j in 1:length(tipos_stats)) {
+  assign(paste("stats_player_", tipos_stats[j]), data.frame())
+  for (i in 1:length(jugadores)) {
+    tryCatch({
+      test <- fb_player_match_logs(jugadores[i], 2023, tipos_stats[j])
+      test <- test %>% filter(!is.na(Min))
+      assign(paste("stats_player_", tipos_stats[j]), bind_rows(get(paste("stats_player_", tipos_stats[j])), test))
+      print(i)},
+    error=function(e){})
+  }
+}
+
+setwd("D:/TFM")
+
+#goles
+write.table(goals, file = "goals.csv", row.names = FALSE, na ="0")
+
+#stats defense
+write.table(`stats_ defense`, file = "stats_ defense.csv", row.names = FALSE, na ="0")
+
+#stats_gca
+write.table(`stats_ gca`, file = "stats_gca.csv", row.names = FALSE, na ="0")
+
+#stats_keeper
+write.table(`stats_ keeper`, file = "stats_keeper.csv", row.names = FALSE, na ="0")
+
+#stats_misc
+write.table(`stats_ misc`, file = "stats_misc.csv", row.names = FALSE, na ="0")
+
+#stats_ passing
+write.table(`stats_ passing`, file = "stats_passing.csv", row.names = FALSE, na ="0")
+
+#stats_ passing types
+write.table(`stats_ passing_types`, file = "stats_passing_types.csv", row.names = FALSE, na ="0")
+
+#stats_ shooting
+write.table(`stats_ shooting`, file = "stats_shooting.csv", row.names = FALSE, na ="0")
+
+#stats_ Player_ defense
+write.table(`stats_player_ defense`, file = "stats_player_defense.csv", row.names = FALSE, na ="0")
+
+#stats_ player_ gca
+write.table(`stats_player_ gca`, file = "stats_player_gca.csv", row.names = FALSE, na ="0")
+
+#stats_ player_ keepers
+write.table(`stats_player_ keepers`, file = "stats_player_keepers.csv", row.names = FALSE, na ="0")
+
+#stats_ player_ misc
+write.table(`stats_player_ misc`, file = "stats_player_misc.csv", row.names = FALSE, na ="0")
+
+#stats_player_passing
+write.table(`stats_player_ passing`, file = "stats_player_passing.csv", row.names = FALSE, na ="0")
+
+#stats_player_passing_types
+write.table(`stats_player_ passing_types`, file = "stats_player_passing_types.csv", row.names = FALSE, na ="0")
+
+#stats_player_possession
+write.table(`stats_player_ possession`, file = "stats_player_possession.csv", row.names = FALSE, na ="0")
+
+#stats_player_summary
+write.table(`stats_player_ summary`, file = "stats_player_summary.csv", row.names = FALSE, na ="0")
+
+#test
+write.table(test, file = "test.csv", row.names = FALSE, na ="0")
